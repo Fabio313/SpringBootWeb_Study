@@ -1,7 +1,13 @@
 package br.edu.uniara.dpi2.fabio.controller;
 
 import br.edu.uniara.dpi2.fabio.model.Employee;
+import br.edu.uniara.dpi2.fabio.model.EmployeePaginRepository;
 import br.edu.uniara.dpi2.fabio.model.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,7 +15,10 @@ import java.util.List;
 @RestController
 class EmployeeController {
 
-    private final EmployeeRepository repository;
+    @Autowired
+    EmployeeRepository repository;
+    @Autowired
+    EmployeePaginRepository paginRepository;
 
     EmployeeController(EmployeeRepository repository) {
         this.repository = repository;
@@ -36,5 +45,25 @@ class EmployeeController {
 
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Nao encontrado"));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> all(
+            @RequestParam int page,
+            @RequestParam int size
+    ){
+        if(page < 0)
+        {
+            return ResponseEntity.badRequest().body("page deve ser >= 0");
+        }
+        if(size < 0 || size > 500)
+        {
+            return ResponseEntity.badRequest().body("size deve ser entre 0 e 500");
+        }
+        Pageable pageable = PageRequest.of(page, size);
+
+        final Page<Employee> listEmployee = paginRepository.findAll(pageable);
+
+        return ResponseEntity.ok(listEmployee.stream().toArray());
     }
 }
