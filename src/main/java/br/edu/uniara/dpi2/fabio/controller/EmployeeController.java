@@ -17,6 +17,7 @@ class EmployeeController {
 
     @Autowired
     EmployeeRepository repository;
+    
     @Autowired
     EmployeePaginRepository paginRepository;
 
